@@ -64,6 +64,8 @@ async def call_agent(caller_id: str, target_agent_id: str, text: str) -> str:
                 "params": {"message": {"role": "user", "parts": [{"type": "text", "text": text}]}},
             },
         )
+        if res.is_error:
+            return f"[{target_agent_id} unavailable]"
         data = res.json()
         artifacts = (data.get("result") or {}).get("artifacts") or []
         if artifacts and artifacts[0].get("parts"):
