@@ -4,6 +4,7 @@ import time
 import httpx
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from . import store
 from .discovery import refresh_agent, register_agent, risk_flags
@@ -30,8 +31,11 @@ async def get_agents():
 
 @app.post("/api/agents")
 async def post_agent(payload: dict):
+    url = payload.get("url")
+    if not url:
+        raise HTTPException(status_code=400, detail="missing 'url'")
     try:
-        return await register_agent(payload["url"])
+        return await register_agent(url)
     except Exception as err:
         raise HTTPException(status_code=400, detail=str(err))
 
@@ -46,7 +50,13 @@ async def get_events(limit: int = 100):
 @app.post("/api/call/{agent_id}")
 async def call_agent(agent_id: str, request: Request):
     caller_id = request.headers.get("x-agentindex-agent-id", "external")
-    body = await request.json()
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="request body must be valid JSON")
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="request body must be a JSON object")
+
     agent = store.get_agent(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="unknown agent")
@@ -83,6 +93,8 @@ async def call_agent(agent_id: str, request: Request):
     )
     await manager.broadcast({"type": "event", "event": event.model_dump()})
 
+    if status == "error":
+        return JSONResponse(status_code=502, content=response_body)
     return response_body
 
 

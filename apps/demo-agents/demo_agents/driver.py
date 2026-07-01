@@ -12,10 +12,15 @@ PROMPTS = ["blue widget", "carbon fiber bracket", "steel bolt m6", "aluminum pan
 async def register_all() -> None:
     async with httpx.AsyncClient(timeout=5) as client:
         for _, port in AGENT_PORTS:
-            try:
-                await client.post(f"{GATEWAY}/api/agents", json={"url": f"http://localhost:{port}"})
-            except Exception:
-                pass
+            url = f"http://localhost:{port}"
+            for attempt in range(10):
+                try:
+                    res = await client.post(f"{GATEWAY}/api/agents", json={"url": url})
+                    if res.status_code == 200:
+                        break
+                except Exception:
+                    pass
+                await asyncio.sleep(0.5)
 
 
 async def drive_traffic() -> None:

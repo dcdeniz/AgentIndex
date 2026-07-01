@@ -19,10 +19,14 @@ async def register_agent(base_url: str) -> RegisteredAgent:
         res.raise_for_status()
         card = res.json()
 
+    name = card.get("name")
+    if not name:
+        raise ValueError(f"agent card at {card_url} is missing required 'name' field")
+
     now = time.time() * 1000
     agent = RegisteredAgent(
-        id=card.get("id") or _slugify(card["name"]),
-        name=card["name"],
+        id=card.get("id") or _slugify(name),
+        name=name,
         url=base_url,
         description=card.get("description"),
         version=card.get("version"),
