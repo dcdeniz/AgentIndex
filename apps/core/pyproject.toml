@@ -1,0 +1,16 @@
+[project]
+name = "agentindex-core"
+version = "0.1.0"
+description = "AgentIndex FastAPI gateway, deployed as a Cloudflare Python Worker"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "httpx",
+]
+
+[dependency-groups]
+dev = [
+    "workers-py",
+    "workers-runtime-sdk",
+]

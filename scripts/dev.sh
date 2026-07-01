@@ -6,7 +6,8 @@ source .venv/bin/activate
 
 trap 'kill $(jobs -p) 2>/dev/null' EXIT
 
-(cd apps/core && uvicorn app.main:app --port 4000 --reload) &
+(cd apps/core && uv run pywrangler dev --port 4000) &
+(cd apps/realtime && npx wrangler dev --port 4001) &
 (cd apps/demo-agents && uvicorn demo_agents.pricing:app --port 3102 --reload) &
 (cd apps/demo-agents && uvicorn demo_agents.inventory:app --port 3103 --reload) &
 (cd apps/demo-agents && uvicorn demo_agents.concierge:app --port 3101 --reload) &

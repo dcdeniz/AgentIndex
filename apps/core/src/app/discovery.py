@@ -12,7 +12,7 @@ def _slugify(name: str) -> str:
     return slug.strip("-")
 
 
-async def register_agent(base_url: str) -> RegisteredAgent:
+async def register_agent(env, base_url: str) -> RegisteredAgent:
     card_url = base_url.rstrip("/") + "/.well-known/agent.json"
     async with httpx.AsyncClient(timeout=5) as client:
         res = await client.get(card_url)
@@ -36,21 +36,21 @@ async def register_agent(base_url: str) -> RegisteredAgent:
         lastSeenAt=now,
         reachable=True,
     )
-    store.upsert_agent(agent)
+    await store.upsert_agent(env, agent)
     return agent
 
 
-async def refresh_agent(agent_id: str) -> None:
-    agent = store.get_agent(agent_id)
+async def refresh_agent(env, agent_id: str) -> None:
+    agent = await store.get_agent(env, agent_id)
     if not agent:
         return
     card_url = agent.url.rstrip("/") + "/.well-known/agent.json"
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             res = await client.get(card_url)
-            store.touch_agent(agent_id, res.status_code < 400)
+            await store.touch_agent(env, agent_id, res.status_code < 400)
     except Exception:
-        store.touch_agent(agent_id, False)
+        await store.touch_agent(env, agent_id, False)
 
 
 def risk_flags(agent: RegisteredAgent) -> list[str]:

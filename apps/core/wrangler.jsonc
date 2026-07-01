@@ -1,0 +1,18 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "agentindex-core",
+  "main": "src/entry.py",
+  "compatibility_date": "2026-07-01",
+  "compatibility_flags": ["python_workers", "python_dedicated_snapshot"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "agentindex-db",
+      "database_id": "40421c35-3d1a-4702-8a92-836a90b27cb8",
+      "migrations_dir": "./migrations"
+    }
+  ],
+  "services": [{ "binding": "REALTIME", "service": "agentindex-realtime" }],
+  "triggers": { "crons": ["*/1 * * * *"] },
+  "observability": { "enabled": true }
+}
